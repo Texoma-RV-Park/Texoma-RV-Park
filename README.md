@@ -1,5 +1,8 @@
 # Texoma RV Park — 3D Concept Plan (rev 15)
 
+**Live 3D view:** https://texoma-rv-park.github.io/Texoma-RV-Park/  
+Survey PDF: https://texoma-rv-park.github.io/Texoma-RV-Park/survey_11.266ac.pdf
+
 Interactive three.js site plan for an 11.266-ac tract, William Ritchey Survey A-892, Cooke County TX
 (US Hwy 82 frontage south, County Road 167 west). Survey PDF: `survey_11.266ac.pdf`.
 
@@ -31,4 +34,4 @@ Open `dist/index.html` in any browser. For GitHub Pages, publish `dist/index.htm
 ## Open items
 - Soil test (sets drip RA), OSSF design, TxDOT driveway permit (Hwy 82), county permit (CR 167),
   drainage study / pond sizing, locate 20' Woodbine WSC easement, county rules for container homes.
-- Deploy: GitHub org `texoma-rv-park`, repo `site`, Pages from `main` (planned).
+- Deploy: GitHub Pages via `.github/workflows/pages.yml` — publishes the committed `dist/index.html` on every push to `master`.
