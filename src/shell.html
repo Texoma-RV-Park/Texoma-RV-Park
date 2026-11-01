@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Texoma RV Park – 3D Concept Plan</title>
+
+<style>
+  :root{--bg:#0f1418;--panel:rgba(16,22,27,.86);--ink:#eef2f4;--mute:#9aa7b0;--acc:#f2b84b;--line:rgba(255,255,255,.12)}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;overflow:hidden}
+  #app{position:fixed;inset:0}
+  canvas{display:block;touch-action:none}
+  .hdr{position:fixed;top:10px;left:10px;right:10px;display:flex;gap:8px;pointer-events:none;z-index:5}
+  .title{background:var(--panel);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:12px;padding:9px 12px;pointer-events:auto}
+  .title h1{margin:0;font-size:15px;font-weight:700}
+  .title p{margin:2px 0 0;font-size:11.5px;color:var(--mute)}
+  .bar{position:fixed;left:50%;transform:translateX(-50%);bottom:max(12px,env(safe-area-inset-bottom));display:flex;gap:6px;flex-wrap:wrap;justify-content:center;z-index:5;width:calc(100% - 20px);max-width:760px}
+  .bar button{flex:1 1 auto;min-width:62px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:9px 9px;font:600 12.5px Inter,sans-serif;cursor:pointer;backdrop-filter:blur(8px)}
+  .bar button.on{background:var(--acc);color:#1b1408;border-color:var(--acc)}
+  .info{position:fixed;top:70px;right:10px;width:310px;max-width:calc(100% - 20px);max-height:calc(100% - 150px);overflow:auto;background:var(--panel);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:12.5px;z-index:6;display:none}
+  .info.show{display:block}
+  .info h2{font-size:13px;margin:0 0 6px;color:var(--acc)}
+  .info table{width:100%;border-collapse:collapse;margin-bottom:10px}
+  .info td{padding:4px 0;border-bottom:1px solid var(--line);vertical-align:top}
+  .info td:last-child{text-align:right;color:#fff;font-weight:600;padding-left:8px;white-space:nowrap}
+  .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+  .info ul{margin:0 0 8px;padding-left:16px;color:var(--mute)}
+  .info li{margin:3px 0}
+  .ok{color:#7fd88f!important}
+  .lbl{font:600 11px Inter,sans-serif;color:#fff;background:rgba(15,20,24,.78);border:1px solid rgba(255,255,255,.18);padding:3px 7px;border-radius:7px;white-space:nowrap;pointer-events:none;text-align:center;line-height:1.25}
+  .lbl.big{font-size:12.5px;background:rgba(242,184,75,.93);color:#1b1408;border-color:#f2b84b}
+  .lbl.com{background:rgba(60,110,190,.9);border-color:#7fb0ff}
+  .lbl.ww{background:rgba(120,70,160,.9);border-color:#c69cf0}
+  .lbl.num{font:700 10px Inter,sans-serif;padding:1px 5px;border-radius:5px;background:#fff;color:#14202a;border:1px solid #14202a}
+  .lbl.street{font:700 11px Inter,sans-serif;background:#1f6b3a;color:#fff;border:1.5px solid #fff;border-radius:4px;letter-spacing:.6px;padding:2px 8px}
+  .lbl.brand{font:800 13px Georgia,serif;letter-spacing:1.5px;background:#2f5d3a;color:#f6e7b4;border:2px solid #f6e7b4;border-radius:6px;padding:3px 10px}
+  .lbl.road{background:transparent;border:none;color:#fff;font-size:13px;letter-spacing:2px;text-shadow:0 1px 3px #000}
+  .lbl small{font-weight:400;opacity:.88}
+  @media (max-width:700px){.lbl{font-size:9.5px;padding:2px 5px}.lbl.big{font-size:10.5px}.lbl.num{font-size:8.5px}.lbl.street{font-size:9px}.lbl small{display:none}.title h1{font-size:13px}.title p{font-size:10px}.bar button{padding:7px 6px;font-size:11.5px;min-width:54px}}
+  .hint{position:fixed;left:10px;bottom:70px;font-size:11px;color:var(--mute);z-index:4;pointer-events:none}
+  #load{position:fixed;inset:0;display:grid;place-items:center;font-size:14px;color:var(--mute);z-index:10;background:var(--bg)}
+</style>
+</head>
+<body>
+<div id="load">Building RV park…</div>
+<script>window.addEventListener("error",e=>{const l=document.getElementById("load");if(l)l.textContent="Could not start 3D view: "+(e.message||"error")+". Open this page in Safari (not the Files preview).";});</script>
+<div id="app"></div>
+<div class="hdr"><div class="title">
+  <h1>Texoma RV Park — 3D Concept Plan <small style="font-weight:400;color:#f2b84b">rev 15</small></h1>
+  <p>11.266 ac · William Ritchey Survey A-892 · Cooke County, TX</p>
+</div></div>
+<div class="info" id="info">
+  <h2>Site summary</h2>
+  <table>
+    <tr><td>Total parcel (per survey)</td><td>11.266 ac</td></tr>
+    <tr><td><span class="sw" style="background:#4f7fc9"></span>Future commercial reserve</td><td id="vRes"></td></tr>
+    <tr><td><span class="sw" style="background:#cdbf9f"></span>RV sites (30' wide back-ins)</td><td id="vSites"></td></tr>
+    <tr><td>Main road / loop road width</td><td>36' / 32'</td></tr>
+    <tr><td>Turns</td><td>50–60' radius curves</td></tr>
+    <tr><td>Hwy 82 entrance</td><td>70' boulevard</td></tr>
+    <tr><td>Green-belt median</td><td>26' wide</td></tr>
+  </table>
+  <h2>Aerobic wastewater (on-site)</h2>
+  <table>
+    <tr><td>RV sites × 40 gpd (water-saving fixtures, TCEQ Table III)</td><td id="vQs"></td></tr>
+    <tr><td>Laundry / restrooms (allowance)</td><td>400 gpd</td></tr>
+    <tr><td>Container homes 3 × 180 gpd (1-BR, est.)</td><td>540 gpd</td></tr>
+    <tr><td>Treatment plant</td><td>3 ATUs</td></tr>
+    <tr><td>Design flow</td><td id="vQ"></td></tr>
+    <tr><td>Under 5,000 gpd OSSF limit</td><td id="vLim" class="ok"></td></tr>
+    <tr><td>Drip area needed (Ra 0.20, assumed)</td><td id="vNeed"></td></tr>
+    <tr><td><span class="sw" style="background:#b9a77a"></span>Drip area shown</td><td id="vHave"></td></tr>
+  </table>
+  <h2>Roads</h2>
+  <ul>
+    <li><b>Ritchey Trail</b> — main 36' road, CR 167 ⇄ Hwy 82 entrance · sites 1–28, 43–62</li>
+    <li><b>Pecan Loop</b> — 32' loop road in the east block · sites 63–81 + 3 container homes</li>
+    <li><b>Park Entrance Blvd</b> — 70' divided entrance from Hwy 82</li>
+    <li><b>Check-In Lane</b> — one-way loop past the office</li>
+    <li><b>Park Row</b> — one-way 20' lane behind the amenity strip + short spur · sites 29–42</li>
+    <li><b>Office Drive</b> — front parking aisle, exit only</li>
+  </ul>
+  <h2>Layout</h2>
+  <ul>
+    <li><b>Hwy 82 side:</b> commercial land left open; 70' divided entrance with a 26' tree-lined green-belt median and wide curved corners at the highway.</li>
+    <li><b>Office + laundry</b> moved onto the commercial corner beside the Hwy 82 entrance, moved south onto the front strip by the Hwy 82 entrance: 18' one-way check-in loop, 6 car stalls in front + 6 behind the office; laundry sits behind the office across Check-In Lane (exit-only onto the boulevard); RV sites now fill the old office area.</li>
+    <li><b>CR 167:</b> second entrance/exit with wide curved corners.</li>
+    <li><b>3 container homes</b> (2-story, 1-bedroom) replace old site 82, inside the Check-In Lane island, facing Pecan Loop.</li>
+    <li><b>Sites 29–38</b> pushed back to the north line on a one-way 20' lane; in front: <b>play area, shaded sitting area and dog park</b>. Old dog-park corner by CR 167 is now RV sites.</li>
+    <li><b>Detention pond</b> south of the main road at the CR 167 end: water drains north, west along a swale, down the CR 167 side through a culvert, into the pond, out to CR 167.</li>
+        <li><b>Wastewater:</b> 3 ATUs + subsurface drip field, south of the main road next to the pond at the CR 167 end.</li>
+  </ul>
+  <h2>To confirm</h2>
+  <ul>
+    <li>Drip area assumes Ra 0.20 (Class III soil, 30 TAC 285 Table I); the soil test sets the real rate.</li>
+    <li>OSSF design by a licensed engineer/sanitarian; setbacks (20' to property line shown) per 30 TAC 285.</li>
+    <li>TxDOT driveway permit (Hwy 82); county permit (CR 167).</li>
+    <li>Detention pond size is a placeholder: engineer to size from a drainage study (Hwy 82 runoff) and confirm outfall to the existing pond / CR 167 ditch.</li>
+    <li>Confirm drip-field setback from the pond.</li>
+    <li>20' Woodbine WSC water easement is unlocated on the survey.</li>
+  </ul>
+</div>
+<div class="hint" id="hint">Drag to rotate · pinch/scroll to zoom · two-finger drag to pan</div>
+<div class="bar">
+  <button data-v="overview" class="on">Overview</button>
+  <button data-v="top">Top plan</button>
+  <button data-v="hwy">Hwy 82</button>
+  <button data-v="center">Homes</button>
+  <button data-v="cr">CR 167</button>
+  <button id="numBtn" class="on">Site #</button>
+  <button id="lblBtn" class="on">Labels</button>
+  <button id="infoBtn">Info</button>
+</div>
+
+<script>
+/*BUNDLE*/
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "texoma-rv-park-3d",
+  "private": true,
+  "scripts": {
+    "build": "esbuild src/main.js --bundle --minify --format=iife --target=safari15 --outfile=dist/bundle.js && node build.mjs"
+  },
+  "dependencies": { "three": "0.160.0" },
+  "devDependencies": { "esbuild": "^0.28.0" }
+}
